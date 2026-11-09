@@ -41,23 +41,28 @@ administrator can find them in [docs/FUSIONPBX.md](docs/FUSIONPBX.md).
 
 ## Install
 
-Install the Flatpak or run the AppImage. To build either one yourself, see
+**[Download the latest release](https://github.com/straytripod/Glitch-Softphone/releases/latest).**
+Pick **x86_64** for most PCs and laptops, or **aarch64** for ARM machines
+such as the Raspberry Pi 5. To build it yourself instead, see
 [docs/BUILD.md](docs/BUILD.md).
 
-**Flatpak:**
-
-```bash
-flatpak install --user Glitch_Softphone-*.flatpak
-```
-
-Then start **Glitch Softphone** from your app menu.
-
-**AppImage:** no install needed.
+**AppImage:** nothing to install. Runs on Ubuntu 24.04+, Debian 13+,
+Fedora 40+ and similar.
 
 ```bash
 chmod +x Glitch_Softphone-*.AppImage
 ./Glitch_Softphone-*.AppImage
 ```
+
+**Flatpak:**
+
+```bash
+flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+flatpak install --user Glitch_Softphone-*.flatpak
+```
+
+Then start **Glitch Softphone** from your app menu. To update, download
+the next release and install it the same way.
 
 ## First start
 
