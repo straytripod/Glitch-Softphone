@@ -1,0 +1,13 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Local settings: real SIP credentials live here, never in git
+config.toml
+
+# Logs and SIP traces
+*.log
+
+# Built packages
+dist/

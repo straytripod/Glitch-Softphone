@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Glitch Softphone
+GenericName=SIP Softphone
+Comment=Make and take calls on your FusionPBX extension
+Exec=glitch-softphone
+Icon=io.github.straytripod.GlitchSoftphone
+Terminal=false
+Categories=Network;Telephony;Qt;
+Keywords=phone;sip;voip;call;fusionpbx;
+StartupWMClass=glitch-softphone

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- AppStream data: what software centres and Flatpak show about the app. -->
+<component type="desktop-application">
+  <id>io.github.straytripod.GlitchSoftphone</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <name>Glitch Softphone</name>
+  <summary>SIP softphone for FusionPBX</summary>
+  <description>
+    <p>
+      A desktop phone for your FusionPBX extension: busy lamps for colleagues,
+      transfers, call park, call-center queues, paging and intercom, contacts,
+      voicemail and call routing by status.
+    </p>
+  </description>
+  <launchable type="desktop-id">io.github.straytripod.GlitchSoftphone.desktop</launchable>
+  <url type="homepage">https://github.com/straytripod/Glitch-Softphone</url>
+  <categories>
+    <category>Network</category>
+    <category>Telephony</category>
+  </categories>
+  <releases>
+    <release version="0.1" date="2026-11-04"/>
+  </releases>
+  <content_rating type="oars-1.1"/>
+</component>

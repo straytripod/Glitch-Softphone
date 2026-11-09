@@ -1,0 +1,2 @@
+# Qt 6 GUI bindings (core modules only; smaller than the full PySide6 package)
+PySide6-Essentials==6.12.0

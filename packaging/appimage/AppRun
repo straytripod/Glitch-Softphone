@@ -1,0 +1,7 @@
+#!/bin/sh
+# Start Glitch Softphone from inside the AppImage.
+# The bundled Python runs isolated (-I): it ignores PYTHONPATH, PYTHONHOME
+# and the user's own site-packages, so nothing on the host can change which
+# modules load. Our app package lives in that Python's site-packages.
+HERE="$(dirname "$(readlink -f "$0")")"
+exec "$HERE/usr/python/bin/python3" -I -m app.main "$@"

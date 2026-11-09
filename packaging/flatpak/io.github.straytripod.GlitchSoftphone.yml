@@ -1,0 +1,116 @@
+# Flatpak recipe. Build with scripts/build-flatpak.sh.
+#
+# The freedesktop runtime already has Python, OpenSSL, Opus, ALSA with its
+# PipeWire plugin, pw-dump, gdbus and ffmpeg, so only PJSIP, PySide6 and the
+# app itself go in here. Every download is pinned by its SHA-256 sum, and the
+# build runs without network access.
+id: io.github.straytripod.GlitchSoftphone
+runtime: org.freedesktop.Platform
+runtime-version: '25.08'
+sdk: org.freedesktop.Sdk
+command: glitch-softphone
+
+finish-args:
+  # Show the window (Wayland, or X11 where there's no Wayland)
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --share=ipc
+  - --device=dri
+  # SIP and RTP to the PBX, and the PBX's web server for names and lamps
+  - --share=network
+  # Audio: PipeWire directly (the app pins headset and ringer to PipeWire
+  # devices), plus the PulseAudio socket as a fallback
+  - --socket=pulseaudio
+  - --filesystem=xdg-run/pipewire-0
+  # Desktop notifications for incoming calls
+  - --talk-name=org.freedesktop.Notifications
+  # Tray icon: the panel's watcher, and the name Qt gives the icon
+  # (the app is process 2 inside the sandbox)
+  - --talk-name=org.kde.StatusNotifierWatcher
+  - --own-name=org.kde.StatusNotifierItem-2-1
+
+cleanup:
+  - /include
+  - /lib/pkgconfig
+  - /share/man
+  - '*.a'
+
+modules:
+  # Only needed to generate PJSIP's Python bindings; removed afterwards.
+  - name: swig
+    cleanup: ['*']
+    config-opts:
+      - --without-boost
+    sources:
+      - type: archive
+        url: https://downloads.sourceforge.net/project/swig/swig/swig-4.3.1/swig-4.3.1.tar.gz
+        sha256: 44fc829f70f1e17d635a2b4d69acab38896699ecc24aa023e516e0eabbec61b8
+
+  # SIP and audio engine, same options as scripts/build-pjsip.sh (audio only).
+  # PJSIP's own libraries are linked statically into the Python module.
+  - name: pjsua2
+    buildsystem: simple
+    build-commands:
+      - echo '#define PJMEDIA_HAS_VIDEO 0' > pjlib/include/pj/config_site.h
+      - ./configure CFLAGS="-O2 -fPIC" CXXFLAGS="-O2 -fPIC"
+          --disable-video --disable-sdl --disable-ffmpeg --disable-v4l2
+          --disable-openh264 --disable-vpx --disable-libyuv --disable-upnp
+      - make dep
+      - make -j"$FLATPAK_BUILDER_N_JOBS"
+      - make -C pjsip-apps/src/swig/python
+      - pip3 install --prefix=/app --no-deps --no-index --no-build-isolation
+          pjsip-apps/src/swig/python
+    sources:
+      - type: archive
+        url: https://github.com/pjsip/pjproject/archive/refs/tags/2.17.tar.gz
+        sha256: 065fe06c06788d97c35f563796d59f00ce52fe9558a52d7b490a042a966facce
+
+  # Qt bindings: the same wheels pip installs from requirements.txt.
+  - name: pyside6
+    buildsystem: simple
+    build-commands:
+      - pip3 install --prefix=/app --no-deps --no-index *.whl
+    sources:
+      - type: file
+        only-arches: [x86_64]
+        url: https://files.pythonhosted.org/packages/49/c2/a04fa003b4360e99d8e3fc2829abacf37396ace63ea1cd616402209ec7c6/shiboken6-6.12.0-cp310-abi3-manylinux_2_34_x86_64.whl
+        sha256: 3bde565bb0890044b5c7f63808adddede5abc241e9395a2bfed61919884d6240
+      - type: file
+        only-arches: [x86_64]
+        url: https://files.pythonhosted.org/packages/7b/3c/7597d8dcb36aa8315427635ec6ec9d850ffbad4ce78b9118ac854889f2d3/pyside6_essentials-6.12.0-cp310-abi3-manylinux_2_34_x86_64.whl
+        sha256: 16f4b5e41daf49235ae048458243da9efe5f3d8040f9cc5aa454ce69893d3bd9
+      - type: file
+        only-arches: [aarch64]
+        url: https://files.pythonhosted.org/packages/97/ca/a4415e6218e0dff764fe2b2d30db2fc8f499a08ace07634232ade3f73adc/shiboken6-6.12.0-cp310-abi3-manylinux_2_39_aarch64.whl
+        sha256: ff72a72b3277b418902d562b987b33a6f6818bed9fe40a49d634d09bc67f620e
+      - type: file
+        only-arches: [aarch64]
+        url: https://files.pythonhosted.org/packages/5e/4e/f4fd4c016719be832ec49d3c87940459e87fd666179a0a199a3998d07916/pyside6_essentials-6.12.0-cp310-abi3-manylinux_2_39_aarch64.whl
+        sha256: 08c5841063fc1df69b7fa1ee405f539e66576a83fc48004be3e2c5e35ccbfa69
+
+  - name: glitch-softphone
+    buildsystem: simple
+    build-commands:
+      - |
+        SITE="$(python3 -c 'import sysconfig; print(sysconfig.get_path("purelib", vars={"base": "/app"}))')"
+        cp -r app "$SITE/app"
+        python3 -m compileall -q "$SITE/app"
+      - install -Dm755 glitch-softphone.sh /app/bin/glitch-softphone
+      - install -Dm644 -t /app/share/applications ${FLATPAK_ID}.desktop
+      - install -Dm644 -t /app/share/metainfo ${FLATPAK_ID}.metainfo.xml
+      - install -Dm644 -t /app/share/icons/hicolor/256x256/apps ${FLATPAK_ID}.png
+    sources:
+      - type: dir
+        path: ../../app
+        dest: app
+        skip: [__pycache__]
+      - type: file
+        path: ../io.github.straytripod.GlitchSoftphone.desktop
+      - type: file
+        path: ../io.github.straytripod.GlitchSoftphone.metainfo.xml
+      - type: file
+        path: ../io.github.straytripod.GlitchSoftphone.png
+      - type: script
+        dest-filename: glitch-softphone.sh
+        commands:
+          - exec python3 -m app.main "$@"

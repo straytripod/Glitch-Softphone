@@ -1,0 +1,92 @@
+# Example settings. Copy to ~/.config/glitch-softphone/config.toml and edit.
+# The real config.toml holds your SIP password: never commit it.
+
+[account]
+# Your FusionPBX server: host name or IP address.
+server = "pbx.example.com"
+transport = "udp"          # udp, tcp, or tls (encrypted; see docs/FUSIONPBX.md)
+# port = 5060              # default: 5060, or 5061 for tls
+extension = "1001"
+auth_username = "1001"
+password = "change-me"
+display_name = "Glitch Softphone"
+# TLS only:
+# tls_ca_file = "~/.config/glitch-softphone/pbx-ca.pem"  # CA that signed the PBX cert;
+#                          # leave out for a certificate from a public CA
+# tls_verify = true        # false accepts ANY certificate (testing only)
+# srtp = "required"        # call audio encryption: required, optional, or off
+
+[audio]
+# PipeWire device names; leave empty to use the desktop's default device.
+# List the names with:  .venv/bin/python -m app.sip.audio
+speaker = ""
+microphone = ""
+ringer = ""                # where incoming calls ring; empty = same as speaker
+# Built-in rings: "Soft chord", "Classic phone", "Double ring", "Rising chirp",
+# "Trill". Or pick your own sound in Settings > Audio and ringtone… (sets
+# ringtone = "custom" and ringtone_file to the app's WAV copy of it).
+# 16-bit WAV works as is; MP3/OGG/FLAC/M4A need the ffmpeg program installed.
+# Long sounds (theme songs) are cut to their first 2 minutes.
+ringtone = "Soft chord"
+# Codecs offered on calls, best first; any other codec is turned off. The PBX
+# picks the first one here that it also has. Opus and G722 are HD (wideband);
+# PCMU/PCMA are the classic phone sound that every PBX and trunk has.
+codecs = ["opus", "G722", "PCMU", "PCMA"]
+
+[phone]
+call_waiting = true        # false = a second call gets "busy" (-> voicemail)
+pickup_prefix = "**"       # FusionPBX directed pickup: ** + extension
+auto_answer = true         # answer intercom/paging calls by themselves when idle
+voicemail_code = "*97"     # the Voicemail button calls this (FusionPBX: own mailbox)
+intercom_prefix = "*8"     # the Intercom button dials this + the extension
+
+# Busy lamp field: extensions shown in the side panel. Easier to manage in
+# the app (Settings > BLF extensions...), which saves them to settings.toml.
+# [[blf]]
+# extension = "102"
+# label = "Front desk"
+
+# Page groups on the Page button (FusionPBX Apps -> Paging). Easier in the
+# app: Settings > Paging and intercom...
+# [[page_group]]
+# number = "7000"
+# name = "All phones"
+
+[ui]
+theme = "system"           # system (follow the desktop), light or dark; also Settings > Appearance
+
+[agent]
+# FusionPBX call center: log in/out and break with feature codes.
+# Easier: Settings > Queue agent... in the app (saved to settings.toml).
+enabled = false
+agent_id = ""              # empty = same as extension
+password = ""              # agent PIN (digits); keep it only in your real config
+login_code = "*22"         # Logged Out <-> Available
+break_code = "*24"         # Available <-> On Break (add this dialplan, see docs)
+
+[directory]
+# Colleagues' names on the BLF lamps, from the PBX's phone directory
+# (FusionPBX provisioning; PBX setup in docs/FUSIONPBX.md).
+enabled = true
+mac = ""                   # the device MAC the PBX knows; empty = this computer's
+# web_cert is filled in by the app when you trust a self-signed PBX certificate.
+
+[routing]
+# Where the PBX sends calls for each status (Settings > Call routing…).
+# Routes: "ring", "voicemail" (DND, *78) or "forward:<number>" (*72<number>).
+# Statuses not listed ring as normal. The app keeps `applied` up to date.
+applied = "ring"
+
+[routing.rules]
+# "Away" = "voicemail"
+# "On Vacation" = "forward:5551234"
+
+[park]
+# FusionPBX valet park slots shown under Parked calls (5901-5999).
+enabled = true
+first_slot = 5901
+slots = 4
+
+[logging]
+level = "INFO"             # DEBUG, INFO, WARNING, ERROR
+sip_trace = false          # true = write full SIP messages to the log (step 2+)
