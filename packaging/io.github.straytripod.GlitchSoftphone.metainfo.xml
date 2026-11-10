@@ -20,7 +20,12 @@
     <category>Telephony</category>
   </categories>
   <releases>
-    <release version="0.1" date="2026-11-04"/>
+    <release version="0.1.1" date="2026-11-09">
+      <description>
+        <p>Fixes the x86_64 Flatpak, which closed at start-up.</p>
+      </description>
+    </release>
+    <release version="0.1" date="2026-11-08"/>
   </releases>
   <content_rating type="oars-1.1"/>
 </component>
