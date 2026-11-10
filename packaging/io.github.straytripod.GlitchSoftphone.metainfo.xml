@@ -5,27 +5,76 @@
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-3.0-or-later</project_license>
   <name>Glitch Softphone</name>
-  <summary>SIP softphone for FusionPBX</summary>
+  <summary>Desk phone for your FusionPBX extension</summary>
+  <developer id="io.github.straytripod">
+    <name>Jeffrey Marugg</name>
+  </developer>
   <description>
     <p>
-      A desktop phone for your FusionPBX extension: busy lamps for colleagues,
-      transfers, call park, call-center queues, paging and intercom, contacts,
-      voicemail and call routing by status.
+      Glitch Softphone turns your computer into a desk phone for a FusionPBX
+      phone system. Sign in with your extension and you get the features of
+      an office desk phone:
+    </p>
+    <ul>
+      <li>Busy lamps that show which colleagues are free, ringing or on a call</li>
+      <li>Blind and attended transfer, call park and call pickup</li>
+      <li>Paging and intercom, answered automatically</li>
+      <li>Call-center queues: join, leave and take a break</li>
+      <li>A status that can send your calls to voicemail or another number</li>
+      <li>Contacts, call history and a voicemail lamp</li>
+      <li>HD audio and encrypted calls</li>
+    </ul>
+    <p>
+      You need an extension on a FusionPBX server. Some features need a few
+      settings on the server; the project's documentation explains them.
     </p>
   </description>
   <launchable type="desktop-id">io.github.straytripod.GlitchSoftphone.desktop</launchable>
   <url type="homepage">https://github.com/straytripod/Glitch-Softphone</url>
+  <url type="bugtracker">https://github.com/straytripod/Glitch-Softphone/issues</url>
+  <url type="vcs-browser">https://github.com/straytripod/Glitch-Softphone</url>
   <categories>
     <category>Network</category>
     <category>Telephony</category>
   </categories>
+  <keywords>
+    <keyword>SIP</keyword>
+    <keyword>VoIP</keyword>
+    <keyword>FusionPBX</keyword>
+    <keyword>FreeSWITCH</keyword>
+    <keyword>BLF</keyword>
+    <keyword>phone</keyword>
+  </keywords>
+  <screenshots>
+    <screenshot type="default">
+      <caption>The phone, with keypad, call buttons and colleagues</caption>
+      <image>https://raw.githubusercontent.com/straytripod/Glitch-Softphone/main/docs/screenshots/main.png</image>
+    </screenshot>
+  </screenshots>
+  <branding>
+    <color type="primary" scheme_preference="light">#F3DFD3</color>
+    <color type="primary" scheme_preference="dark">#4A3529</color>
+  </branding>
+  <supports>
+    <control>pointing</control>
+    <control>keyboard</control>
+  </supports>
+  <requires>
+    <display_length compare="ge">768</display_length>
+  </requires>
   <releases>
     <release version="0.1.1" date="2026-11-09">
       <description>
         <p>Fixes the x86_64 Flatpak, which closed at start-up.</p>
       </description>
     </release>
-    <release version="0.1" date="2026-11-08"/>
+    <release version="0.1" date="2026-11-08">
+      <description>
+        <p>First release.</p>
+      </description>
+    </release>
   </releases>
-  <content_rating type="oars-1.1"/>
+  <content_rating type="oars-1.1">
+    <content_attribute id="social-audio">intense</content_attribute>
+  </content_rating>
 </component>
