@@ -32,11 +32,11 @@ sudo apt install flatpak flatpak-builder
 sudo dnf install flatpak-builder
 
 flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-flatpak install --user flathub org.freedesktop.Platform//25.08 org.freedesktop.Sdk//25.08
+flatpak install --user flathub org.kde.Platform//6.11 org.kde.Sdk//6.11 io.qt.PySide.BaseApp//6.11
 ```
 
-The last command downloads the runtime the app runs on and the SDK it's
-built with, about 1 GB.
+The last command downloads the KDE runtime the app runs on, the SDK it's
+built with, and Flathub's PySide6 base app (Qt for Python), about 2 GB.
 
 **Build:**
 

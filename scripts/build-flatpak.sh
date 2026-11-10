@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Build the Flatpak for this machine's architecture (x86_64 or aarch64)
 # from packaging/flatpak/. Needs flatpak-builder and the
-# freedesktop 25.08 runtime and SDK (see docs/BUILD.md).
+# KDE 6.11 runtime, SDK and PySide6 base app (see docs/BUILD.md).
 #
 # Usage (from anywhere):  scripts/build-flatpak.sh
 # Output:                 dist/Glitch_Softphone-<version>-<arch>.flatpak
