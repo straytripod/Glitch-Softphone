@@ -67,6 +67,14 @@
     <display_length compare="ge">768</display_length>
   </requires>
   <releases>
+    <release version="0.1.2" date="2026-11-10">
+      <description>
+        <ul>
+          <li>Refresh from PBX (F5): load lamps, names and contacts the administrator just changed, without restarting</li>
+          <li>Lamps no longer repeat the call state in an extra line, and long ringing text is no longer cut off</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.1.1" date="2026-11-09">
       <description>
         <p>Fixes the x86_64 Flatpak, which closed at start-up.</p>
