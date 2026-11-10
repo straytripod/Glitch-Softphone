@@ -7,6 +7,7 @@ passes it on to everyone subscribed to the extension's presence. The status
 is display only: calls still ring as normal.
 """
 
+import re
 from dataclasses import dataclass
 from enum import Enum
 
@@ -45,6 +46,10 @@ class Presence:
 # Notes that add nothing under a lamp: FreeSWITCH's default for a registered
 # phone, our own default, and call states the lamp already shows.
 _PLAIN_NOTES = {"", "available", "online", "open", "in office", "on the phone"}
+# FreeSWITCH's notes during a call: "Ring 103", "Call 101", "Talk 101" (the
+# other party's number). Only a number may follow, so a status someone typed,
+# like "Call me after 3", still shows.
+_CALL_NOTE = re.compile(r"(ring|call|talk)(\s+[+*#\d]+)?", re.IGNORECASE)
 
 
 def presence_text(presence: Presence) -> str:
@@ -54,4 +59,6 @@ def presence_text(presence: Presence) -> str:
     if not presence.online:
         return "offline"
     note = presence.note.strip()
-    return "" if note.lower() in _PLAIN_NOTES else note
+    if note.lower() in _PLAIN_NOTES or _CALL_NOTE.fullmatch(note):
+        return ""
+    return note

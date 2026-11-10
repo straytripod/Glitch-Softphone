@@ -51,7 +51,7 @@ def lamp_text(entry: BlfEntry, status: BlfStatus, presence: Presence = Presence(
 def _lamp_lines(name: str, status: BlfStatus) -> str:
     if status.state is BlfState.RINGING:
         detail = f"ringing ({status.remote})" if status.remote else "ringing"
-        return f"{name}\n{detail} – click to pick up"
+        return f"{name}\n{detail}\nclick to pick up"   # own line: buttons don't wrap
     if status.state is BlfState.BUSY:
         return f"{name}\nbusy ({status.remote})" if status.remote else f"{name}\nbusy"
     if status.state is BlfState.IDLE:
@@ -148,9 +148,11 @@ class BlfPanel(QWidget):
             return
         status = self._phone.blf_status(extension)
         presence = self._phone.presence(extension)
-        button.setText(lamp_text(entry, status, presence, self._phone.directory_name(extension)))
-        button.setToolTip("Click to pick up" if status.state is BlfState.RINGING
-                          else f"Click to call {extension}")
+        text = lamp_text(entry, status, presence, self._phone.directory_name(extension))
+        button.setText(text)
+        # The whole text again on hover, in case a long name is cut off.
+        action = "Click to pick up" if status.state is BlfState.RINGING else f"Click to call {extension}"
+        button.setToolTip(f"{text}\n\n{action}")
         self._paint(button, lamp_state(status, presence))
 
     def _update_all(self):
