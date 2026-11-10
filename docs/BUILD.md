@@ -15,8 +15,8 @@ package, build on an ARM64 machine, such as a Raspberry Pi 5.
 Start by getting the code:
 
 ```bash
-git clone https://github.com/straytripod/Glitch-Softphone.git
-cd Glitch-Softphone
+git clone https://github.com/straytripod/GlitchSoftphone.git
+cd GlitchSoftphone
 ```
 
 ---

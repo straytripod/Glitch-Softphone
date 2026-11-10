@@ -30,9 +30,9 @@
     </p>
   </description>
   <launchable type="desktop-id">io.github.straytripod.GlitchSoftphone.desktop</launchable>
-  <url type="homepage">https://github.com/straytripod/Glitch-Softphone</url>
-  <url type="bugtracker">https://github.com/straytripod/Glitch-Softphone/issues</url>
-  <url type="vcs-browser">https://github.com/straytripod/Glitch-Softphone</url>
+  <url type="homepage">https://github.com/straytripod/GlitchSoftphone</url>
+  <url type="bugtracker">https://github.com/straytripod/GlitchSoftphone/issues</url>
+  <url type="vcs-browser">https://github.com/straytripod/GlitchSoftphone</url>
   <categories>
     <category>Network</category>
     <category>Telephony</category>
@@ -48,7 +48,7 @@
   <screenshots>
     <screenshot type="default">
       <caption>The phone, with keypad, call buttons and colleagues</caption>
-      <image>https://raw.githubusercontent.com/straytripod/Glitch-Softphone/main/docs/screenshots/main.png</image>
+      <image>https://raw.githubusercontent.com/straytripod/GlitchSoftphone/main/docs/screenshots/main.png</image>
     </screenshot>
   </screenshots>
   <branding>

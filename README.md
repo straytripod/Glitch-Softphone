@@ -41,7 +41,7 @@ administrator can find them in [docs/FUSIONPBX.md](docs/FUSIONPBX.md).
 
 ## Install
 
-**[Download the latest release](https://github.com/straytripod/Glitch-Softphone/releases/latest).**
+**[Download the latest release](https://github.com/straytripod/GlitchSoftphone/releases/latest).**
 Pick **x86_64** for most PCs and laptops, or **aarch64** for ARM machines
 such as the Raspberry Pi 5. To build it yourself instead, see
 [docs/BUILD.md](docs/BUILD.md).
