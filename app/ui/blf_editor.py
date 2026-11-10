@@ -44,7 +44,7 @@ def directory_note(status: str, mac: str) -> str:
 
 class BlfEditorDialog(QDialog):
     def __init__(self, entries: list[BlfEntry], note: str = "", parent=None,
-                 pbx_entries: list[BlfEntry] = ()):
+                 pbx_entries: list[BlfEntry] = (), on_refresh=None):
         super().__init__(parent)
         self.setWindowTitle("BLF extensions")
         self.resize(360, 380)
@@ -78,18 +78,36 @@ class BlfEditorDialog(QDialog):
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
         layout = QVBoxLayout(self)
-        if pbx_entries:
-            pbx = QLabel(pbx_keys_text(pbx_entries))
-            pbx.setWordWrap(True)
-            layout.addWidget(pbx)
-            layout.addWidget(QLabel("Your own:"))
+        # The PBX part is always built and just hidden while the PBX has no
+        # lamps, so show_pbx() can fill it in after a refresh.
+        self._pbx = QLabel()
+        self._pbx.setWordWrap(True)
+        self._own_heading = QLabel("Your own:")
+        layout.addWidget(self._pbx)
+        layout.addWidget(self._own_heading)
         layout.addLayout(body)
-        if note:
-            hint = QLabel(note)
-            hint.setWordWrap(True)
-            hint.setTextInteractionFlags(Qt.TextSelectableByMouse)   # copy the MAC
-            layout.addWidget(hint)
+        self._note = QLabel()
+        self._note.setWordWrap(True)
+        self._note.setTextInteractionFlags(Qt.TextSelectableByMouse)   # copy the MAC
+        layout.addWidget(self._note)
+        if on_refresh is not None:
+            self.refresh_button = QPushButton("Refresh from PBX")
+            self.refresh_button.setToolTip("Download lamps and names from the PBX again now")
+            self.refresh_button.clicked.connect(on_refresh)
+            row = QHBoxLayout()
+            row.addWidget(self.refresh_button)
+            row.addStretch()
+            layout.addLayout(row)
         layout.addWidget(buttons)
+        self.show_pbx(pbx_entries, note)
+
+    def show_pbx(self, pbx_entries: list[BlfEntry], note: str):
+        """Show the PBX's lamps and the directory status (again, after a refresh)."""
+        self._pbx.setText(pbx_keys_text(pbx_entries) if pbx_entries else "")
+        self._pbx.setVisible(bool(pbx_entries))
+        self._own_heading.setVisible(bool(pbx_entries))
+        self._note.setText(note)
+        self._note.setVisible(bool(note))
 
     def entries(self) -> list[BlfEntry]:
         rows = []

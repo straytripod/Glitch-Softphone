@@ -184,7 +184,7 @@ class PhoneService(QObject):
         self.directory_status = ""
         self._directory_timer = QTimer(self)
         self._directory_timer.setInterval(DIRECTORY_REFRESH_MS)
-        self._directory_timer.timeout.connect(self.refresh_directory)
+        self._directory_timer.timeout.connect(self.refresh_from_pbx)
         if fetcher is not None:
             fetcher.setParent(self)   # deleted with the service, before Qt shuts down
             fetcher.loaded.connect(self._directory_loaded)
@@ -608,19 +608,34 @@ class PhoneService(QObject):
             self._mac = local_mac(self._config.account.server)
         return self._mac
 
-    def refresh_directory(self):
+    @property
+    def directory_refreshing(self) -> bool:
+        """True while the PBX downloads (names, contacts, lamps) are running."""
+        return bool(self._fetching)
+
+    def refresh_from_pbx(self) -> bool:
+        """Re-read lamps, names and contacts from the PBX now (Phone > Refresh
+        from PBX, and the hourly timer). Does nothing while a refresh is still
+        running: the fetcher takes one download at a time, and the answers are
+        told apart by the order they were asked in. False if nothing started."""
+        if self._fetching:
+            return False
+        return self.refresh_directory()
+
+    def refresh_directory(self) -> bool:
         directory = self._config.directory
         server = self._config.account.server
         if self._fetcher is None or not directory.enabled or not server:
-            return
+            return False
         mac = self.device_mac
         if not mac:
             self._set_directory_status("can't find this computer's MAC address")
-            return
+            return False
         # Two downloads, one after the other: colleagues' names, then (in
         # _directory_loaded) the whole directory for the company contacts.
         self._fetching = "extensions"
         self._fetcher.get(directory_url(server, mac), directory.web_cert)
+        return True
 
     def trust_web_cert(self, fingerprint: str):
         """Trust this PBX web certificate from now on, and fetch the names.
@@ -645,6 +660,7 @@ class PhoneService(QObject):
             names = parse_directory(text)
         except DirectoryError as e:
             log.warning("PBX directory: %s", e)
+            self._fetching = ""
             self._set_directory_status("the PBX sent something that isn't a directory")
             return
         log.info("PBX directory: %d names", len(names))
@@ -729,6 +745,7 @@ class PhoneService(QObject):
         return Remote(name, remote.number) if name else remote
 
     def _directory_untrusted(self, fingerprint: str):
+        self._fetching = ""   # the download was refused, so the refresh is over
         self._set_directory_status("PBX web certificate not trusted")
         if fingerprint not in self._declined:
             self.web_cert_untrusted.emit(fingerprint, bool(self._config.directory.web_cert))

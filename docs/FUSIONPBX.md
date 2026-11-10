@@ -98,7 +98,9 @@ set up first.
 2. For a whole team, put the keys on a **Device Profile** (Accounts →
    Device Profiles) and choose that profile on each device.
 
-The app loads these lamps when it starts and every hour after that. They
+The app loads these lamps when it starts and every hour after that. To
+pick up a change straight away, the user presses **F5** (**Phone → Refresh
+from PBX**); names and company contacts are reloaded too. PBX lamps
 come first in the list, followed by any lamps the user added. Users can't
 remove PBX lamps in the app; delete the key in FusionPBX instead.
 
@@ -173,7 +175,8 @@ never saves or logs the SIP password in that file.
 ### Troubleshooting
 
 The status under the list in **Settings → BLF extensions…** says whether
-names loaded. FusionPBX answers every refusal with "404 not found", so look
+names loaded. After changing something on the PBX, click **Refresh from
+PBX** there to try again. FusionPBX answers every refusal with "404 not found", so look
 in the PBX's system log for the reason:
 
     sudo grep -h "provision attempt" /var/log/syslog /var/log/auth.log | tail -5

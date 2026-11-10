@@ -87,6 +87,8 @@ the next release and install it the same way.
 - **Park:** click **Park**. The call appears under *Parked calls*, where
   anyone can pick it up.
 - **Colleagues:** click a lamp to call. Right-click it for intercom.
+- **Refresh from PBX** (F5, in the Phone menu): loads lamps, names and
+  company contacts your administrator just changed, without restarting.
 - **Closing the window** keeps the phone running in the tray. To really
   quit, use **Phone → Quit** (Ctrl+Q).
 

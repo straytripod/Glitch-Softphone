@@ -308,6 +308,10 @@ class MainWindow(QMainWindow):
         self.setStatusBar(self._status)
 
         phone_menu = self.menuBar().addMenu("&Phone")
+        refresh_action = phone_menu.addAction("&Refresh from PBX", self._refresh_from_pbx)
+        refresh_action.setShortcut("F5")
+        refresh_action.setToolTip("Download lamps, names and contacts from the PBX again now")
+        phone_menu.addSeparator()
         quit_action = phone_menu.addAction("&Quit", self._quit)
         quit_action.setShortcut("Ctrl+Q")
         settings_menu = self.menuBar().addMenu("&Settings")
@@ -521,11 +525,33 @@ class MainWindow(QMainWindow):
             self._tabs.setCurrentIndex(0)
             self._select(call_id)
 
+    def _refresh_from_pbx(self):
+        """Phone > Refresh from PBX (F5). The lamps, names and contacts update
+        themselves when the downloads arrive; only say something if none started."""
+        if self._phone.refresh_from_pbx() or self._phone.directory_refreshing:
+            return
+        QMessageBox.information(
+            self, "Refresh from PBX",
+            "Nothing to refresh: lamps and names from the PBX need an account and "
+            "the PBX's phone directory. See Settings > BLF extensions… for its status.")
+
     def _open_blf_editor(self):
-        note = directory_note(self._phone.directory_status, self._phone.device_mac)
-        dialog = BlfEditorDialog(self._phone.own_blf_entries(), note, self,
-                                 pbx_entries=self._phone.pbx_blf_entries())
-        if not dialog.exec():
+        def note():
+            return directory_note(self._phone.directory_status, self._phone.device_mac)
+        dialog = BlfEditorDialog(self._phone.own_blf_entries(), note(), self,
+                                 pbx_entries=self._phone.pbx_blf_entries(),
+                                 on_refresh=self._phone.refresh_from_pbx)
+        # Keep the PBX part of the dialog current while it's open (refreshes).
+        def update():
+            dialog.show_pbx(self._phone.pbx_blf_entries(), note())
+        self._phone.blf_list_changed.connect(update)
+        self._phone.directory_changed.connect(update)
+        try:
+            accepted = dialog.exec()
+        finally:
+            self._phone.blf_list_changed.disconnect(update)
+            self._phone.directory_changed.disconnect(update)
+        if not accepted:
             return
         try:
             self._phone.set_blf_entries(dialog.entries())
