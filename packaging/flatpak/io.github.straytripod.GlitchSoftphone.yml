@@ -1,9 +1,9 @@
 # Flatpak recipe. Build with scripts/build-flatpak.sh.
 #
 # The freedesktop runtime already has Python, OpenSSL, Opus, ALSA with its
-# PipeWire plugin, pw-dump, gdbus and ffmpeg, so only PJSIP, PySide6 and the
-# app itself go in here. Every download is pinned by its SHA-256 sum, and the
-# build runs without network access.
+# PipeWire plugin, pw-dump, gdbus and ffmpeg, so only PJSIP, PySide6 (plus
+# Kerberos on x86_64) and the app itself go in here. Every download is
+# pinned by its SHA-256 sum, and the build runs without network access.
 id: io.github.straytripod.GlitchSoftphone
 runtime: org.freedesktop.Platform
 runtime-version: '25.08'
@@ -64,6 +64,28 @@ modules:
       - type: archive
         url: https://github.com/pjsip/pjproject/archive/refs/tags/2.17.tar.gz
         sha256: 065fe06c06788d97c35f563796d59f00ce52fe9558a52d7b490a042a966facce
+
+  # Kerberos client library. The x86_64 PySide6 wheel's QtNetwork links
+  # libgssapi_krb5.so.2, which the runtime doesn't have, so the app can't
+  # start without it. The aarch64 wheel doesn't need it.
+  - name: krb5
+    only-arches: [x86_64]
+    subdir: src
+    config-opts:
+      - --disable-static
+      - --disable-rpath
+      - --without-ldap
+      - --sysconfdir=/app/etc
+      - --localstatedir=/app/var
+    cleanup:
+      - /bin
+      - /sbin
+      - /share
+      - /var
+    sources:
+      - type: archive
+        url: https://kerberos.org/dist/krb5/1.22/krb5-1.22.3.tar.gz
+        sha256: fe90af8441ad9fa9b064b8e53077cefb782a96f8a68276b031dc54af1789ff0b
 
   # Qt bindings: the same wheels pip installs from requirements.txt.
   - name: pyside6
