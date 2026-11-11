@@ -2,10 +2,18 @@
 
 Qt's tray balloons can't have buttons, so we talk to the desktop's
 notification service directly. Receiving its signals (a button was pressed,
-a notification closed) works with QtDBus. Sending is done with the `gdbus`
-tool: PySide6 can only send signed integers, and the service insists on
-unsigned ones for notification ids; gdbus looks up the right types itself.
-gdbus comes with GLib, so it's on every GNOME desktop.
+a notification closed) works with QtDBus.
+
+Sending is harder: the service insists on an unsigned notification id, and
+PySide6 on its own only sends signed integers. Two ways around that:
+
+- Through a QDBusInterface, which reads the service's own description and
+  lets us name each argument's type. Preferred: the notification then comes
+  from our own D-Bus connection, which lives as long as the app. KDE Plasma
+  needs that: it drops the buttons of a notification whose sender is gone.
+- With the `gdbus` tool, which looks up the right types itself. Used where
+  Qt can't read the description (GNOME's): GNOME keeps the buttons, and
+  sends clicks to everyone, so the short-lived gdbus process doesn't matter.
 """
 
 import logging
@@ -13,8 +21,8 @@ import re
 import shutil
 import subprocess
 
-from PySide6.QtCore import QObject, Signal, Slot, SLOT
-from PySide6.QtDBus import QDBusConnection
+from PySide6.QtCore import QMetaObject, QObject, Qt, Q_ARG, Q_RETURN_ARG, Signal, Slot, SLOT
+from PySide6.QtDBus import QDBusConnection, QDBusInterface
 
 log = logging.getLogger(__name__)
 
@@ -22,6 +30,8 @@ SERVICE = "org.freedesktop.Notifications"
 PATH = "/org/freedesktop/Notifications"
 INTERFACE = "org.freedesktop.Notifications"
 URGENCY_NORMAL, URGENCY_CRITICAL = 1, 2
+NOTIFY_METHOD = "Notify(QString,uint,QString,QString,QString,QStringList,QVariantMap,int)"
+CALL_TIMEOUT_MS = 2000   # a hung desktop mustn't hang the phone
 
 
 def gvariant_string(text: str) -> str:
@@ -64,7 +74,9 @@ class Notifier(QObject):
         self._icon = icon_path
         self._mine: set[int] = set()   # ids of notifications we showed
         bus = QDBusConnection.sessionBus()
-        self.available = bool(shutil.which("gdbus")) and bus.isConnected()
+        self._service = self._typed_service(bus) if bus.isConnected() else None
+        self.available = bus.isConnected() and (
+            self._service is not None or bool(shutil.which("gdbus")))
         if self.available:
             # Any sender (""), not SERVICE: on GNOME a helper process (gjs)
             # owns the service name, but gnome-shell itself sends the button
@@ -76,22 +88,63 @@ class Notifier(QObject):
         else:
             log.warning("Desktop notifications unavailable (no gdbus or no session bus)")
 
+    @staticmethod
+    def _typed_service(bus: QDBusConnection) -> QDBusInterface | None:
+        """The service as a QDBusInterface, if Qt understood its Notify method."""
+        service = QDBusInterface(SERVICE, PATH, INTERFACE, bus)
+        service.setTimeout(CALL_TIMEOUT_MS)
+        if service.isValid() and service.metaObject().indexOfMethod(NOTIFY_METHOD) >= 0:
+            return service
+        log.info("Notifications sent with gdbus (Qt can't use this desktop's Notify description)")
+        return None
+
     def notify(self, summary: str, body: str, actions: list[tuple[str, str]] = (),
                urgency: int = URGENCY_NORMAL, timeout_ms: int = -1) -> int | None:
         """Show a notification; returns its id (for close()), or None."""
         if not self.available:
             return None
-        command = notify_command(self._app_name, self._icon, summary, body,
-                                 list(actions), urgency, timeout_ms)
-        output = self._run(command)
-        notification_id = parse_notify_reply(output) if output else None
+        if self._service is not None:
+            notification_id = self._notify_qt(summary, body, list(actions), urgency, timeout_ms)
+        else:
+            command = notify_command(self._app_name, self._icon, summary, body,
+                                     list(actions), urgency, timeout_ms)
+            output = self._run(command)
+            notification_id = parse_notify_reply(output) if output else None
         if notification_id is not None:
             self._mine.add(notification_id)
         return notification_id
 
+    def _notify_qt(self, summary: str, body: str, actions: list[tuple[str, str]],
+                   urgency: int, timeout_ms: int) -> int | None:
+        flat = [text for action in actions for text in action]
+        try:
+            # The spec says urgency is a byte; an int is what PySide6 can
+            # send, and servers read it as a number either way.
+            notification_id = QMetaObject.invokeMethod(
+                self._service, "Notify", Qt.DirectConnection, Q_RETURN_ARG("uint"),
+                Q_ARG(str, self._app_name), Q_ARG("uint", 0), Q_ARG(str, self._icon),
+                Q_ARG(str, summary), Q_ARG(str, body), Q_ARG("QStringList", flat),
+                Q_ARG("QVariantMap", {"urgency": urgency}), Q_ARG(int, timeout_ms))
+        except RuntimeError as e:
+            log.warning("Notification call failed: %s", e)
+            return None
+        error = self._service.lastError()
+        if error.isValid():
+            log.warning("Notification call failed: %s %s", error.name(), error.message())
+            return None
+        return int(notification_id) or None
+
     def close(self, notification_id: int | None):
         self._mine.discard(notification_id)
-        if self.available and notification_id is not None:
+        if not self.available or notification_id is None:
+            return
+        if self._service is not None:
+            try:
+                QMetaObject.invokeMethod(self._service, "CloseNotification", Qt.DirectConnection,
+                                         Q_ARG("uint", notification_id))
+            except RuntimeError as e:
+                log.warning("Closing notification %s failed: %s", notification_id, e)
+        else:
             self._run(["gdbus", "call", "--session", "--dest", SERVICE, "--object-path", PATH,
                        "--method", f"{INTERFACE}.CloseNotification", str(notification_id)])
 
