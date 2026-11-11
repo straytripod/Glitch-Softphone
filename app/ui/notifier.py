@@ -39,6 +39,7 @@ def notify_command(app_name: str, icon: str, summary: str, body: str,
     return [
         "gdbus", "call", "--session", "--dest", SERVICE, "--object-path", PATH,
         "--method", f"{INTERFACE}.Notify",
+        "--",   # so a timeout of -1 (server default) isn't read as an option
         gvariant_string(app_name), str(replaces_id), gvariant_string(icon),
         gvariant_string(summary), gvariant_string(body),
         "[" + ", ".join(flat) + "]" if flat else "@as []",
