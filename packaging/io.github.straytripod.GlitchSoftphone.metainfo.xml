@@ -67,6 +67,15 @@
     <display_length compare="ge">768</display_length>
   </requires>
   <releases>
+    <release version="0.1.3" date="2026-11-10">
+      <description>
+        <ul>
+          <li>Incoming calls you answer have sound again: the ringtone could restart for a moment and close the microphone</li>
+          <li>Answer and Decline buttons on call notifications in KDE Plasma</li>
+          <li>Missed-call notifications show up again</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.1.2" date="2026-11-10">
       <description>
         <ul>
