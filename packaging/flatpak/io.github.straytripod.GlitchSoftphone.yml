@@ -40,6 +40,8 @@ finish-args:
 
 cleanup-commands:
   - /app/cleanup-BaseApp.sh
+  # The base app's own store entry: only ours belongs in the app.
+  - rm -f /app/share/metainfo/io.qt.PySide.BaseApp.metainfo.xml
 
 cleanup:
   - /include
