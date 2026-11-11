@@ -91,6 +91,7 @@ class _Call:
     quiet: bool = False               # feature-code call: not listed, not logged
     dtmf_after_answer: str = ""       # keyed in once the PBX answers (agent PIN)
     answered: bool = False            # reached ACTIVE at some point
+    answering: bool = False           # we sent 200 OK; PJSIP hasn't said ACTIVE yet
 
     def view(self) -> CallView:
         return CallView(self.call_id, self.remote, self.incoming, self.state,
@@ -352,6 +353,7 @@ class PhoneService(QObject):
         if call is None or call.state is not CallState.RINGING_IN:
             return
         self._hold_live_calls(except_id=call_id)
+        call.answering = True
         self._engine.stop_tone()
         self._tone = None
         self._engine.answer(call_id)
@@ -1097,10 +1099,13 @@ class PhoneService(QObject):
         it comes in while another call is in progress. Otherwise play
         ringback while a call we dialed rings without audio from the PBX."""
         # A call being auto-answered has its own one-shot alert tone instead.
-        calls = [c for c in self._calls.values()
-                 if not (c.auto_kind is not None and c.state is CallState.RINGING_IN)]
-        ringing = any(c.state is CallState.RINGING_IN for c in calls)
-        busy = any(c.state is not CallState.RINGING_IN for c in self._calls.values())
+        # A call we just answered still says RINGING_IN until PJSIP reports
+        # it connected, and its media often starts first: ringing it again
+        # then would move the call's audio to the ringer with the mic closed.
+        ringing = any(c.state is CallState.RINGING_IN and c.auto_kind is None
+                      and not c.answering for c in self._calls.values())
+        busy = any(c.state is not CallState.RINGING_IN or c.answering
+                   for c in self._calls.values())
         if ringing:
             tone, on_ringer = ("waiting" if busy else "ring"), None
         elif any(self._needs_ringback(c) for c in self._calls.values()):
