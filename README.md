@@ -6,6 +6,7 @@ transfers and call park, and handles call-center queues, paging and
 intercom.
 
 Runs on x86_64 and ARM64 (including Raspberry Pi 5).
+<img width="968" height="829" alt="image" src="https://github.com/user-attachments/assets/e5f380d6-88d8-49a0-8d40-082e2be65e71" />
 
 ## What it does
 
